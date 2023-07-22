@@ -61,6 +61,7 @@ bar_handler = ConversationHandler(
     },
     fallbacks = [MessageHandler(filters.TEXT, bar_intro)],
     map_to_parent={
+        #Connection to the parent handler, note that its written EXIT: EXIT where both of these are equal to 0, that's why it leads to INITIAL which is also equal to 0
         EXIT: EXIT
     }
 )

@@ -42,7 +42,7 @@ logger = logging.getLogger(__name__)
 
 INITIAL, LORE, CONTINUE, COMMITTEES = range(4)
 
-committees_list = "\n -  /".join(["",".9 bar", "PhysiX", "ClimbX"])
+committees_list = "\n -  ".join(["",".9 bar🍻🍻 (/bar)", "PhysiX⚛️⚛️ (/Physix)", "ClimbX (/ClimbX)"])
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Start the conversation and ask user for input."""
@@ -125,7 +125,8 @@ def main() -> None:
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler("start", start)],
         states={
-            INITIAL: [
+            INITIAL: [ 
+                #Initial state of the bot in which it can be asked about gems, the lore and committees
                 MessageHandler(
                     filters.Regex(re.compile(r'gems', re.IGNORECASE)), gems
                 ),
@@ -137,6 +138,7 @@ def main() -> None:
                 ),
             ],
             LORE: [
+                #State of the bot in which it can be asked about the different sailore members
                 MessageHandler(
                     filters.Regex(re.compile(r'adrien', re.IGNORECASE)), members.Adrien
                 ),
@@ -169,6 +171,7 @@ def main() -> None:
                 ),
             ],
             CONTINUE: [
+                #State of the bot in which it is asked if it wants to continue asking about sailore members
                 MessageHandler(
                     filters.Regex(re.compile(r'yay', re.IGNORECASE)), more
                 ),
@@ -177,6 +180,7 @@ def main() -> None:
                 )
             ],
             COMMITTEES:  [
+                #State of the bot in which the committees children handlers can be accessed
                 bar.bar_handler,
                 physiX.physix_handler
             ],
