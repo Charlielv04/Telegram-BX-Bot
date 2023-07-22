@@ -39,14 +39,7 @@ logging.getLogger("httpx").setLevel(logging.WARNING)
 
 logger = logging.getLogger(__name__)
 
-INITIAL, LORE, TYPING_CHOICE = range(3)
-
-reply_keyboard = [
-    ["Age", "Favourite colour"],
-    ["Number of siblings", "Something else..."],
-    ["Done"],
-]
-markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
+INITIAL, LORE, CONTINUE = range(3)
 
 
 def facts_to_str(user_data: Dict[str, str]) -> str:
@@ -58,10 +51,10 @@ def facts_to_str(user_data: Dict[str, str]) -> str:
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Start the conversation and ask user for input."""
     await context.bot.send_chat_action(chat_id=update.effective_chat.id, action='typing')
-    time.sleep(1)
-    await context.bot.send_message(chat_id=update.effective_chat.id, text="Ahoy Sailor, what can I help you with")
+    time.sleep(0.6)
+    await context.bot.send_message(chat_id=update.effective_chat.id, text="Ahoy Sailor, what can I help you with?")
     await context.bot.send_chat_action(chat_id=update.effective_chat.id, action='typing')
-    time.sleep(1)
+    time.sleep(1.2)
     await context.bot.send_message(chat_id=update.effective_chat.id, text="We can talk about those shiny gems, the mighty Sail'ore or the different committees a pirate can join")
     return INITIAL
 
@@ -71,21 +64,49 @@ async def gems(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     time.sleep(1)
     await context.bot.send_message(chat_id=update.effective_chat.id, text="Oh me matey, gems are the most important currency in all of the seven seas")
     await context.bot.send_chat_action(chat_id=update.effective_chat.id, action='typing')
-    time.sleep(1)
+    time.sleep(0.8)
     await context.bot.send_message(chat_id=update.effective_chat.id, text="They've been studied for centuries and they are central to Gemconomy")
     return INITIAL
 
 async def lore(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Tell them a little bit about Sailore and allows them to learn about each of the members"""
+    await context.bot.send_chat_action(chat_id=update.effective_chat.id, action='typing')
+    time.sleep(0.5)
     await context.bot.send_message(chat_id=update.effective_chat.id, text="The mighty Sail'ore you wanna learn about?")
     await context.bot.send_chat_action(chat_id=update.effective_chat.id, action='typing')
     time.sleep(1)
     await context.bot.send_message(chat_id=update.effective_chat.id, text="This small but strong group of pirates once conquered the bachelor and, now, as they used to say they bring you party and crepes and fun")
     await context.bot.send_chat_action(chat_id=update.effective_chat.id, action='typing')
-    time.sleep(1)
+    time.sleep(0.8)
     await context.bot.send_message(chat_id=update.effective_chat.id, text="Do you want to learn about any of these pirates: Adrien, Eli, Giselle, Nic, Jeanne, Ryan, Akira, Ipop, Gaia or Angela")
-
     return LORE
+
+async def more(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """Ask about what other pirate do they wanna learn about"""
+    time.sleep(0.8)
+    await context.bot.send_message(chat_id=update.effective_chat.id, text="Which other pirate do you want to learn about me matey?")
+    return LORE
+
+async def nomore(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """Same as start but a bit different"""
+    await context.bot.send_chat_action(chat_id=update.effective_chat.id, action='typing')
+    time.sleep(0.6)
+    await context.bot.send_message(chat_id=update.effective_chat.id, text="What other stories can I tell you?")
+    await context.bot.send_chat_action(chat_id=update.effective_chat.id, action='typing')
+    time.sleep(1.2)
+    await context.bot.send_message(chat_id=update.effective_chat.id, text="We can talk about those shiny gems, the mighty Sail'ore or the different committees a pirate can join")
+    return INITIAL
+
+async def predetermined(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """Predetermined message when something is not understood"""
+    await context.bot.send_chat_action(chat_id=update.effective_chat.id, action='typing')
+    time.sleep(0.8)
+    await context.bot.send_message(chat_id=update.effective_chat.id, text="Oh me matey I didn't understand what you meant, but I know lots of other stories")
+    await context.bot.send_chat_action(chat_id=update.effective_chat.id, action='typing')
+    time.sleep(1.2)
+    await context.bot.send_message(chat_id=update.effective_chat.id, text="We can talk about those shiny gems, the mighty Sail'ore or the different committees a pirate can join")
+    return INITIAL
+
 
 def main() -> None:
     """Run the bot."""
@@ -135,10 +156,17 @@ def main() -> None:
                 MessageHandler(
                     filters.Regex(re.compile(r'angela', re.IGNORECASE)), members.Angela
                 ),
-
             ],
+            CONTINUE: [
+                MessageHandler(
+                    filters.Regex(re.compile(r'yay', re.IGNORECASE)), more
+                ),
+                MessageHandler(
+                    filters.Regex(re.compile(r'nay', re.IGNORECASE)), nomore
+                )
+            ]
         },
-        fallbacks=[MessageHandler(filters.TEXT, start)],
+        fallbacks=[MessageHandler(filters.TEXT, predetermined)],
     )
 
     application.add_handler(conv_handler)
