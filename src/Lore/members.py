@@ -17,6 +17,24 @@ markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
 
 INITIAL, LORE, CONTINUE = range(3)
 
+
+async def member(update: Update, context: ContextTypes.DEFAULT_TYPE, message) -> int:
+    """General Sailore member info function"""
+    await context.bot.send_chat_action(chat_id=update.effective_chat.id, action='typing')
+    time.sleep(3)
+    await context.bot.send_message(chat_id=update.effective_chat.id, text=message)
+    await context.bot.send_chat_action(chat_id=update.effective_chat.id, action='typing')
+    time.sleep(0.5)
+    await context.bot.send_message(chat_id=update.effective_chat.id, reply_markup=markup,
+                                   text="Do you want to learn about any other pirate?")
+    return CONTINUE
+
+
+async def test_member(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """member wrapper for specific lore member test_member """
+    return member(update, context, "test_member message")
+
+
 async def Adrien(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Tell them a little bit about this Sailore member"""
     await context.bot.send_chat_action(chat_id=update.effective_chat.id, action='typing')
