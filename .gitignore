@@ -1,5 +1,8 @@
 #Public and private keys for the bot
+__pycache__
+*.pyc 
+*.pyo
 bx-telegram
-bx-telegram.pub
-service_account.json
+bx-telegram.pub 
 credentials.json
+service_account.json
