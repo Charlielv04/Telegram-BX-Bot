@@ -1,0 +1,5 @@
+#Public and private keys for the bot
+bx-telegram
+bx-telegram.pub
+service_account.json
+credentials.json
