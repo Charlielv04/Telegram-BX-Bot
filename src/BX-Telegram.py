@@ -30,7 +30,7 @@ from telegram.ext import (
     MessageHandler,
     filters,
 )
-
+aa = "Adrien"
 # Enable logging
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
@@ -74,7 +74,7 @@ async def lore(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     await context.bot.send_message(chat_id=update.effective_chat.id, text="This small but strong group of pirates once conquered the bachelor and, now, as they used to say they bring you party and crepes and fun")
     await context.bot.send_chat_action(chat_id=update.effective_chat.id, action='typing')
     time.sleep(0.8)
-    await context.bot.send_message(chat_id=update.effective_chat.id, text="Do you want to learn about any of these pirates: Adrien, Eli, Giselle, Nic, Jeanne, Ryan, Akira, Ipop, Gaia or Angela")
+    await context.bot.send_message(chat_id=update.effective_chat.id, text="If you wish to learn about any of these pirates just tell me their name: Adrien, Eli, Giselle, Nic, Jeanne, Ryan, Akira, Ipop, Gaia or Angela")
     return LORE
 
 async def more(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -139,36 +139,7 @@ def main() -> None:
             ],
             LORE: [
                 #State of the bot in which it can be asked about the different sailore members
-                MessageHandler(
-                    filters.Regex(re.compile(r'adrien', re.IGNORECASE)), members.Adrien
-                ),
-                MessageHandler(
-                    filters.Regex(re.compile(r'eli', re.IGNORECASE)), members.Eli
-                ),
-                MessageHandler(
-                    filters.Regex(re.compile(r'giselle', re.IGNORECASE)), members.Giselle
-                ),
-                MessageHandler(
-                    filters.Regex(re.compile(r'nic', re.IGNORECASE)), members.Nic
-                ),
-                MessageHandler(
-                    filters.Regex(re.compile(r'jeanne', re.IGNORECASE)), members.Jeanne
-                ),
-                MessageHandler(
-                    filters.Regex(re.compile(r'ryan', re.IGNORECASE)), members.Ryan
-                ),
-                MessageHandler(
-                    filters.Regex(re.compile(r'akira', re.IGNORECASE)), members.Akira
-                ),
-                MessageHandler(
-                    filters.Regex(re.compile(r'ipop', re.IGNORECASE)), members.Ipop
-                ),
-                MessageHandler(
-                    filters.Regex(re.compile(r'gaia', re.IGNORECASE)), members.Gaia
-                ),
-                MessageHandler(
-                    filters.Regex(re.compile(r'angela', re.IGNORECASE)), members.Angela
-                ),
+                MessageHandler(filters.TEXT, members.member)
             ],
             CONTINUE: [
                 #State of the bot in which it is asked if it wants to continue asking about sailore members
