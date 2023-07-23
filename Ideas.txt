@@ -1,3 +1,5 @@
 To create the different parts of the telegram bot for each committee we will do a Conversation Handler whose entry point is 
 a command of the form /Committee-name and then all of the different states for the committee can be established inside of that
 conversation handler. 
+
+Authentication for committee members
