@@ -1,0 +1,6 @@
+{
+    "start": ["Ahoy Sailor, what can I help you with?", "We can talk about those shiny gems, the mighty Sail'ore or the different committees a pirate can join"],
+    "gems": ["Oh me matey, gems are the most important currency in all of the seven seas", "They've been studied for centuries and they are central to Gemconomy. However right now they are nowhere to be seen."],
+    "lore": ["The mighty Sail'ore you wanna learn about?", "This small but strong group of pirates once conquered the bachelor and, now, as they used to say they bring you party and crepes and fun", "If you wish to learn about any of these pirates just tell me their name: Adrien, Eli, Giselle, Nic, Jeanne, Ryan, Akira, Ipop, Gaia or Angela"],
+    "predetermined": ["Oh me matey I didn't understand what you meant, but I know lots of other stories","We can talk about those shiny gems, the mighty Sail'ore or the different committees a pirate can join"]
+}

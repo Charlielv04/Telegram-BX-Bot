@@ -2,12 +2,16 @@ import logging
 import re
 import time
 import json
-from typing import Dict
+import typing
+import math
 from Lore import members 
 from Committees import bar, physiX
 
 with open('../credentials.json') as f:
     bot_token = json.load(f)["bot_token"]
+
+with open('../data/Initial.json', encoding='utf-8') as f:
+    texts = json.load(f)
 
 from telegram import __version__ as TG_VER
 try:
@@ -44,37 +48,31 @@ INITIAL, LORE, CONTINUE, COMMITTEES = range(4)
 
 committees_list = "\n -  ".join(["",".9 bar🍻🍻 (/bar)", "PhysiX⚛️⚛️ (/Physix)", "ClimbX (/ClimbX)"])
 
+def message_wait(message):
+    return math.log(len(message), 10)
+
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Start the conversation and ask user for input."""
-    await context.bot.send_chat_action(chat_id=update.effective_chat.id, action='typing')
-    time.sleep(0.6)
-    await context.bot.send_message(chat_id=update.effective_chat.id, text="Ahoy Sailor, what can I help you with?")
-    await context.bot.send_chat_action(chat_id=update.effective_chat.id, action='typing')
-    time.sleep(1.2)
-    await context.bot.send_message(chat_id=update.effective_chat.id, text="We can talk about those shiny gems, the mighty Sail'ore or the different committees a pirate can join")
+    for message in texts["start"]:
+        await context.bot.send_chat_action(chat_id=update.effective_chat.id, action='typing')
+        time.sleep(message_wait(message))
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=message)
     return INITIAL
 
 async def gems(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Tell them a little bit about gems, in the future it will give more options but for that I'll have to ask Gaia and Adrien about IW"""
-    await context.bot.send_chat_action(chat_id=update.effective_chat.id, action='typing')
-    time.sleep(0.8)
-    await context.bot.send_message(chat_id=update.effective_chat.id, text="Oh me matey, gems are the most important currency in all of the seven seas")
-    await context.bot.send_chat_action(chat_id=update.effective_chat.id, action='typing')
-    time.sleep(1.1)
-    await context.bot.send_message(chat_id=update.effective_chat.id, text="They've been studied for centuries and they are central to Gemconomy. However right now they are nowhere to be seen.")
+    for message in texts["gems"]:
+        await context.bot.send_chat_action(chat_id=update.effective_chat.id, action='typing')
+        time.sleep(message_wait(message))
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=message)
     return INITIAL
 
 async def lore(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Tell them a little bit about Sailore and allows them to learn about each of the members"""
-    await context.bot.send_chat_action(chat_id=update.effective_chat.id, action='typing')
-    time.sleep(0.5)
-    await context.bot.send_message(chat_id=update.effective_chat.id, text="The mighty Sail'ore you wanna learn about?")
-    await context.bot.send_chat_action(chat_id=update.effective_chat.id, action='typing')
-    time.sleep(1)
-    await context.bot.send_message(chat_id=update.effective_chat.id, text="This small but strong group of pirates once conquered the bachelor and, now, as they used to say they bring you party and crepes and fun")
-    await context.bot.send_chat_action(chat_id=update.effective_chat.id, action='typing')
-    time.sleep(0.8)
-    await context.bot.send_message(chat_id=update.effective_chat.id, text="If you wish to learn about any of these pirates just tell me their name: Adrien, Eli, Giselle, Nic, Jeanne, Ryan, Akira, Ipop, Gaia or Angela")
+    for message in texts["lore"]:
+        await context.bot.send_chat_action(chat_id=update.effective_chat.id, action='typing')
+        time.sleep(message_wait(message))
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=message)
     return LORE
 
 async def more(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -95,12 +93,10 @@ async def nomore(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
 async def predetermined(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Predetermined message when something is not understood"""
-    await context.bot.send_chat_action(chat_id=update.effective_chat.id, action='typing')
-    time.sleep(0.8)
-    await context.bot.send_message(chat_id=update.effective_chat.id, text="Oh me matey I didn't understand what you meant, but I know lots of other stories")
-    await context.bot.send_chat_action(chat_id=update.effective_chat.id, action='typing')
-    time.sleep(1.2)
-    await context.bot.send_message(chat_id=update.effective_chat.id, text="We can talk about those shiny gems, the mighty Sail'ore or the different committees a pirate can join")
+    for message in texts["predetermined"]:
+        await context.bot.send_chat_action(chat_id=update.effective_chat.id, action='typing')
+        time.sleep(message_wait(message))
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=message)
     return INITIAL
 
 async def committees(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
