@@ -6,7 +6,7 @@ from typing import Dict
 from Lore import members 
 from Committees import bar, physiX
 
-with open('credentials.json') as f:
+with open('../credentials.json') as f:
     bot_token = json.load(f)["bot_token"]
 
 from telegram import __version__ as TG_VER
