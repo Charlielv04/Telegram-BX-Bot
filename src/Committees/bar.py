@@ -16,8 +16,6 @@ REPLY_KEYBOARD = [
 ]
 MARKUP = ReplyKeyboardMarkup(REPLY_KEYBOARD, one_time_keyboard=True)
 
-GC = gspread.service_account('../service_account.json')
-SH = GC.open("BX-telegram")
 
 BOARD_MEMBERS = "\n".join(["Prez: Carlos", "VPrez: Maxime", "Stock: Gabin", "Comms: Alix", "Events: Anahí", "Sked: Johanna", "Bartenders: Arturo, Antoine"])
 async def bar_intro(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -64,20 +62,8 @@ async def sub(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         await context.bot.send_message(chat_id=update.effective_chat.id, text="It seems like you aren't subscribed to this committee")
         await context.bot.send_message(chat_id=update.effective_chat.id, text="Do you wanna subscribe to it?", reply_markup=MARKUP)
         await subscribe(update.message.chat.first_name, update.message.chat.id, ".9 Bar")
-async def checksub(id, committee_name):
-    sheet = SH.worksheet("Committee subscriptions")
-    ids = sheet.col_values(sheet.find(committee_name).col + 1)[1:] 
-    return id in ids
 
 async def subscribe(name, id, committee_name):
-    sheet = SH.worksheet("Committee subscriptions")
-    column = sheet.find(committee_name).col
-    print(sheet.find(committee_name).address)
-    names = sheet.col_values(column)[1:]
-    
-     
-    
-    
 
 
 EXIT, HOME, SUB = range(3)
