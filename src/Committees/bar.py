@@ -16,9 +16,9 @@ from telegram.ext import (
 GC = gspread.service_account('../service_account.json')
 SH = GC.open("BX-telegram")
 
-board_members = "\n".join(["Prez: Carlos", "VPrez: Maxime", "Stock: Gabin", "Comms: Alix", "Events: Anahí", "Sked: Johanna", "Bartenders: Arturo, Antoine"])
+BOARD_MEMBERS = "\n".join(["Prez: Carlos", "VPrez: Maxime", "Stock: Gabin", "Comms: Alix", "Events: Anahí", "Sked: Johanna", "Bartenders: Arturo, Antoine"])
 async def bar_intro(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    """Intro for physix"""
+    """Intro for the bar"""
     await context.bot.send_chat_action(chat_id=update.effective_chat.id, action='typing')
     time.sleep(1.2)
     await context.bot.send_message(chat_id=update.effective_chat.id, text="Welcome to the .9bar section of the Telegram Bot")
@@ -37,7 +37,7 @@ async def bar_board(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     await context.bot.send_message(chat_id=update.effective_chat.id, text="The .9 bar is excellent we have lots of motivated people here")
     await context.bot.send_chat_action(chat_id=update.effective_chat.id, action='typing')
     time.sleep(1.2)
-    await context.bot.send_message(chat_id=update.effective_chat.id, text="The members of the board are the following:\n" + board_members)
+    await context.bot.send_message(chat_id=update.effective_chat.id, text="The members of the board are the following:\n" + BOARD_MEMBERS)
     return HOME
 
 async def exit(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
