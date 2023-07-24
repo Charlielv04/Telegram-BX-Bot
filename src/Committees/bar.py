@@ -1,6 +1,7 @@
 import re
 import time
 from typing import Dict
+import gspread
 
 from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
 from telegram.ext import (
@@ -11,6 +12,10 @@ from telegram.ext import (
     MessageHandler,
     filters,
 )
+
+GC = gspread.service_account('../service_account.json')
+SH = GC.open("BX-telegram")
+
 board_members = "\n".join(["Prez: Carlos", "VPrez: Maxime", "Stock: Gabin", "Comms: Alix", "Events: Anahí", "Sked: Johanna", "Bartenders: Arturo, Antoine"])
 async def bar_intro(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Intro for physix"""
@@ -44,8 +49,33 @@ async def exit(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     await context.bot.send_chat_action(chat_id=update.effective_chat.id, action='typing')
     time.sleep(2)
     await context.bot.send_message(chat_id=update.effective_chat.id, text="After that, what do you want to talk about, we can talk about those shiny gems, the mighty Sail'ore or the different committees a pirate can join")
-    
     return EXIT
+
+async def sub(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """Checks if the user is subscribed and allows it to toogle it"""
+    sheet = SH.worksheet("Committee subscriptions")
+    ids = sheet.col_values(sheet.find(".9 Bar").col + 1)[1:]
+    if update.message.chat.id in ids:
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="It seems like you already subscribed to this committee") 
+    else:
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="It seems like you aren't subscribed to this committee. You will be subscribed now")
+        print(update)
+        await subscribe(update.message.chat.first_name, update.message.chat.id, ".9 Bar")
+async def checksub(id, committee_name):
+    sheet = SH.worksheet("Committee subscriptions")
+    ids = sheet.col_values(sheet.find(committee_name).col + 1)[1:] 
+    return id in ids
+
+async def subscribe(name, id, committee_name):
+    sheet = SH.worksheet("Committee subscriptions")
+    column = sheet.find(committee_name).col
+    print(sheet.find(committee_name).address)
+    names = sheet.col_values(column)[1:]
+    
+     
+    
+    
+
 
 EXIT, HOME, SUB = range(3)
 
@@ -56,6 +86,7 @@ bar_handler = ConversationHandler(
             MessageHandler(
                 filters.Regex(re.compile(r'board', re.IGNORECASE)), bar_board
             ),
+            CommandHandler("sub", sub),
             CommandHandler("exit", exit)
         ],
     },
