@@ -1,17 +1,20 @@
 import re
 import time
-from typing import Dict
 import gspread
 
-from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
+from telegram import ReplyKeyboardMarkup, Update
 from telegram.ext import (
-    Application,
     CommandHandler,
     ContextTypes,
     ConversationHandler,
     MessageHandler,
     filters,
 )
+
+REPLY_KEYBOARD = [
+    ["Yay", "Nay"],
+]
+MARKUP = ReplyKeyboardMarkup(REPLY_KEYBOARD, one_time_keyboard=True)
 
 GC = gspread.service_account('../service_account.json')
 SH = GC.open("BX-telegram")
@@ -45,7 +48,7 @@ async def exit(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     await context.bot.send_chat_action(chat_id=update.effective_chat.id, action='typing')
     time.sleep(1.2)
     await context.bot.send_message(chat_id=update.effective_chat.id, text="See you again whenever you want to explore this great committee")
-    
+
     await context.bot.send_chat_action(chat_id=update.effective_chat.id, action='typing')
     time.sleep(2)
     await context.bot.send_message(chat_id=update.effective_chat.id, text="After that, what do you want to talk about, we can talk about those shiny gems, the mighty Sail'ore or the different committees a pirate can join")
@@ -58,8 +61,8 @@ async def sub(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     if update.message.chat.id in ids:
         await context.bot.send_message(chat_id=update.effective_chat.id, text="It seems like you already subscribed to this committee") 
     else:
-        await context.bot.send_message(chat_id=update.effective_chat.id, text="It seems like you aren't subscribed to this committee. You will be subscribed now")
-        print(update)
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="It seems like you aren't subscribed to this committee")
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="Do you wanna subscribe to it?", reply_markup=MARKUP)
         await subscribe(update.message.chat.first_name, update.message.chat.id, ".9 Bar")
 async def checksub(id, committee_name):
     sheet = SH.worksheet("Committee subscriptions")
@@ -80,8 +83,8 @@ async def subscribe(name, id, committee_name):
 EXIT, HOME, SUB = range(3)
 
 bar_handler = ConversationHandler(
-    entry_points = [CommandHandler("bar", bar_intro)],
-    states = {
+    entry_points=[CommandHandler("bar", bar_intro)],
+    states={
         HOME: [
             MessageHandler(
                 filters.Regex(re.compile(r'board', re.IGNORECASE)), bar_board
@@ -90,7 +93,7 @@ bar_handler = ConversationHandler(
             CommandHandler("exit", exit)
         ],
     },
-    fallbacks = [MessageHandler(filters.TEXT, bar_intro)],
+    fallbacks=[MessageHandler(filters.TEXT, bar_intro)],
     map_to_parent={
         #Connection to the parent handler, note that its written EXIT: EXIT where both of these are equal to 0, that's why it leads to INITIAL which is also equal to 0
         EXIT: EXIT

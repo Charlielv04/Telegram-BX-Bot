@@ -12,10 +12,10 @@ from telegram.ext import (
     filters,
 )
 
-reply_keyboard = [
+REPLY_KEYBOARD = [
     ["Yay", "Nay"],
 ]
-markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
+MARKUP = ReplyKeyboardMarkup(REPLY_KEYBOARD, one_time_keyboard=True)
 
 INITIAL, LORE, CONTINUE = range(3)
 
@@ -32,6 +32,6 @@ async def member(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         await context.bot.send_message(chat_id=update.effective_chat.id, text="Oh me matey, I don't know that pirate")
     await context.bot.send_chat_action(chat_id=update.effective_chat.id, action='typing')
     time.sleep(0.5)
-    await context.bot.send_message(chat_id=update.effective_chat.id, reply_markup=markup,
+    await context.bot.send_message(chat_id=update.effective_chat.id, reply_markup=MARKUP,
                                    text="Do you want to learn about any other pirate?")
     return CONTINUE

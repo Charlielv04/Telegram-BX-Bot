@@ -25,7 +25,7 @@ if __version_info__ < (20, 0, 0, "alpha", 1):
         f"{TG_VER} version of this example, "
         f"visit https://docs.python-telegram-bot.org/en/v{TG_VER}/examples.html"
     )
-from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
+from telegram import Update
 from telegram.ext import (
     Application,
     CommandHandler,
@@ -34,7 +34,7 @@ from telegram.ext import (
     MessageHandler,
     filters,
 )
-aa = "Adrien"
+
 # Enable logging
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
@@ -65,6 +65,7 @@ async def gems(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         await context.bot.send_chat_action(chat_id=update.effective_chat.id, action='typing')
         time.sleep(message_wait(message))
         await context.bot.send_message(chat_id=update.effective_chat.id, text=message)
+    await context.bot.send_message(chat_id=5454590173, text="Hello Gianluca I'm seeing you")
     return INITIAL
 
 async def lore(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -119,7 +120,7 @@ def main() -> None:
     application = Application.builder().token(bot_token).build()
 
     conv_handler = ConversationHandler(
-        entry_points=[CommandHandler("start", start)],
+        entry_points=[CommandHandler("start", start), MessageHandler(filters.TEXT, start)],
         states={
             INITIAL: [ 
                 #Initial state of the bot in which it can be asked about gems, the lore and committees
