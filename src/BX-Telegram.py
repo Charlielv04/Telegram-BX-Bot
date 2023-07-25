@@ -4,9 +4,8 @@ import time
 import json
 import typing
 import math
-from Lore import members 
-from Committees import bar, physiX
-
+import Lore
+import Committees
 with open('../credentials.json') as f:
     bot_token = json.load(f)["bot_token"]
 
@@ -118,6 +117,9 @@ def main() -> None:
     """Run the bot."""
     # Create the Application and pass it your bot's token.
     application = Application.builder().token(bot_token).build()
+    bar = Committees.Bar()
+    physix = Committees.Physix()
+    members = Lore.Members()
 
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler("start", start), MessageHandler(filters.TEXT, start)],
@@ -150,7 +152,7 @@ def main() -> None:
             COMMITTEES:  [
                 #State of the bot in which the committees children handlers can be accessed
                 bar.bar_handler,
-                physiX.physix_handler
+                physix.physix_handler
             ],
         },
         fallbacks=[MessageHandler(filters.TEXT, predetermined)],
