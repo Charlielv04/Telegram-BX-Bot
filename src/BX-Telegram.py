@@ -54,18 +54,21 @@ committees_list = "\n -  ".join(["",".9 bar🍻🍻 (/bar)", "PhysiX⚛️⚛️
 def message_wait(message):
     return math.log(len(message), 10)
 
+def user_to_key(user):
+    return 'user:' + str(user.id)
+
 def add_to_db(update: Update):
     if r.exists(update.effective_user.id):
         return
     user = update.effective_user
-    key = 'user:' + str(user.id)
+    key = user_to_key(user)
     info = {
         'name': user.first_name,
         'fullname': user.full_name,
         'id': user.id,
         'subs': '' #comma separated list as redis has to store everything as strings
     }
-    r.hmset(key, info)
+    r.hset(key, mapping=info)
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Start the conversation and ask user for input."""
