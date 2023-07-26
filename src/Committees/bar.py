@@ -99,4 +99,3 @@ class Bar:
         column = sheet.find(committee_name).col
         print(sheet.find(committee_name).address)
         names = sheet.col_values(column)[1:]
-        

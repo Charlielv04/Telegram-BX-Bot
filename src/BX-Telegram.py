@@ -151,7 +151,7 @@ def main() -> None:
             ],
             COMMITTEES:  [
                 #State of the bot in which the committees children handlers can be accessed
-                bar.bar_handler,
+                Committees.bar.Bar.bar_handler,
                 physix.physix_handler
             ],
         },
