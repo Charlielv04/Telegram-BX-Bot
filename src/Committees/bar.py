@@ -1,7 +1,7 @@
 import re
 import time
-import gspread
-from src.config import *
+import redis
+import config
 
 from telegram import ReplyKeyboardMarkup, Update
 from telegram.ext import (
@@ -12,6 +12,7 @@ from telegram.ext import (
     filters,
 )
 
+r = config.r
 
 class Bar:
     def __init__(self):
@@ -19,12 +20,10 @@ class Bar:
             ["Yay", "Nay"],
         ]
         self.MARKUP = ReplyKeyboardMarkup(self.REPLY_KEYBOARD, one_time_keyboard=True)
-        
-        self.GC = gspread.service_account(ROOT + '/service_account.json')
-        self.SH = self.GC.open("BX-telegram")
-    
+
+        self.committee_name = ".9 Bar"
         self.BOARD_MEMBERS = "\n".join(["Prez: Carlos", "VPrez: Maxime", "Stock: Gabin", "Comms: Alix", "Events: Anahí", "Sked: Johanna", "Bartenders: Arturo, Antoine"])
-        self.EXIT, self.HOME, self.SUB = range(3)
+        self.EXIT, self.HOME, self.SUB, self.UNSUB = range(4)
 
         self.bar_handler = ConversationHandler(
             entry_points=[CommandHandler("bar", self.bar_intro)],
@@ -33,9 +32,19 @@ class Bar:
                     MessageHandler(
                         filters.Regex(re.compile(r'board', re.IGNORECASE)), self.bar_board
                     ),
-                    CommandHandler("sub", self.sub),
+                    CommandHandler("sub", self.manage_sub),
                     CommandHandler("exit", exit)
                 ],
+                self.SUB: [
+                    MessageHandler(
+                        filters.Regex(re.compile(r'yay', re.IGNORECASE)), self.sub
+                    )
+                ],
+                self.UNSUB: [
+                    MessageHandler(
+                        filters.Regex(re.compile(r'yay', re.IGNORECASE)), self.unsub
+                    )
+                ]
             },
             fallbacks=[MessageHandler(filters.TEXT, self.bar_intro)],
             map_to_parent={
@@ -64,7 +73,7 @@ class Bar:
         await context.bot.send_message(chat_id=update.effective_chat.id, text="The .9 bar is excellent we have lots of motivated people here")
         await context.bot.send_chat_action(chat_id=update.effective_chat.id, action='typing')
         time.sleep(1.2)
-        await context.bot.send_message(chat_id=update.effective_chat.id, text="The members of the board are the following:\n" + BOARD_MEMBERS)
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="The members of the board are the following:\n" + self.BOARD_MEMBERS)
         return self.HOME
     
     async def exit(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -78,25 +87,40 @@ class Bar:
         await context.bot.send_message(chat_id=update.effective_chat.id, text="After that, what do you want to talk about, we can talk about those shiny gems, the mighty Sail'ore or the different committees a pirate can join")
         return self.EXIT
     
-    async def sub(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    async def manage_sub(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         """Checks if the user is subscribed and allows it to toogle it"""
-        sheet = SH.worksheet("Committee subscriptions")
-        ids = sheet.col_values(sheet.find(".9 Bar").col + 1)[1:]
-        if update.message.chat.id in ids:
-            await context.bot.send_message(chat_id=update.effective_chat.id, text="It seems like you already subscribed to this committee") 
+        user_info = r.get(update.effective_chat.id)
+        if self.committee_name in user_info['subs']:
+            await context.bot.send_message(chat_id=update.effective_chat.id,
+                                           text='It seems like you are already subscribed to this committee')
+            await context.bot.send_message(chat_id=update.effective_chat.id,
+                                           text='This means that you will receive their communications through our associated bot NAME TO BE INSERTED')
+            await context.bot.send_message(chat_id=update.effective_chat.id,
+                                           text='Do you wish to unsubscribe?',
+                                           reply_markup=self.MARKUP)
+            return self.UNSUB
+
         else:
-            await context.bot.send_message(chat_id=update.effective_chat.id, text="It seems like you aren't subscribed to this committee")
-            await context.bot.send_message(chat_id=update.effective_chat.id, text="Do you wanna subscribe to it?", reply_markup=MARKUP)
-            await self.subscribe(update.message.chat.first_name, update.message.chat.id, ".9 Bar")
-    
-    async def checksub(self, id, committee_name):
-        sheet = self.SH.worksheet("Committee subscriptions")
-        ids = sheet.col_values(sheet.find(committee_name).col + 1)[1:] 
-        return id in ids
-    
-    async def subscribe(self, name, id, committee_name):
-        sheet = self.SH.worksheet("Committee subscriptions")
-        column = sheet.find(committee_name).col
-        print(sheet.find(committee_name).address)
-        names = sheet.col_values(column)[1:]
-        
+            await context.bot.send_message(chat_id=update.effective_chat.id,
+                                           text='It seems like you are not subscribed to this committee')
+            await context.bot.send_message(chat_id=update.effective_chat.id,
+                                           text='Doing so will mean that you will receive their communications through our associated bot NAME TO BE INSERTED')
+            await context.bot.send_message(chat_id=update.effective_chat.id,
+                                           text='Do you wish to subscribe?',
+                                           reply_markup=self.MARKUP)
+            return self.SUB
+
+    async def sub(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+        user_info = r.get(update.effective_chat.id)
+        user_info['subs'].append(self.committee_name)
+        r.hmset(update.effective_chat.id, user_info)
+        await context.bot.send_message(chat_id=update.effective_chat.id,
+                                       text=f'You have been subscribed to {self.committee_name}')
+        return self.HOME
+
+    async def unsub(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+        user_info = r.get(update.effective_chat.id)
+        user_info['subs'].remove(self.committee_name)
+        r.hmset(update.effective_chat.id, user_info)
+        await context.bot.send_message(chat_id=update.effective_chat.id,
+                                       text=f'You have been unsubscribed to {self.committee_name}')

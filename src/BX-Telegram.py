@@ -6,9 +6,9 @@ import typing
 import math
 import redis
 import Lore
-import
-
-r = redis.Redis(host='localhost', port=6379, decode_responses=True)
+import Committees
+import config
+r = config.r
 
 with open('../credentials.json') as f:
     bot_token = json.load(f)["bot_token"]
@@ -54,13 +54,26 @@ committees_list = "\n -  ".join(["",".9 bar🍻🍻 (/bar)", "PhysiX⚛️⚛️
 def message_wait(message):
     return math.log(len(message), 10)
 
+def add_to_db(update: Update):
+    if r.exists(update.effective_user.id):
+        return
+    user = update.effective_user
+    key = 'user:' + str(user.id)
+    info = {
+        'name': user.first_name,
+        'fullname': user.full_name,
+        'id': user.id,
+        'subs': '' #comma separated list as redis has to store everything as strings
+    }
+    r.hmset(key, info)
+
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Start the conversation and ask user for input."""
     for message in texts["start"]:
         await context.bot.send_chat_action(chat_id=update.effective_chat.id, action='typing')
         time.sleep(message_wait(message))
         await context.bot.send_message(chat_id=update.effective_chat.id, text=message)
-    r.set(update.effective_chat.id, update.message.from_user) #Adds any user that sends a message to the database
+    add_to_db(update)
     return INITIAL
 
 async def gems(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
