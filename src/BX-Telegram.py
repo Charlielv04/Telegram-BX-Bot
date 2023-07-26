@@ -4,8 +4,12 @@ import time
 import json
 import typing
 import math
+import redis
 import Lore
-import Committees
+import
+
+r = redis.Redis(host='localhost', port=6379, decode_responses=True)
+
 with open('../credentials.json') as f:
     bot_token = json.load(f)["bot_token"]
 
@@ -56,6 +60,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         await context.bot.send_chat_action(chat_id=update.effective_chat.id, action='typing')
         time.sleep(message_wait(message))
         await context.bot.send_message(chat_id=update.effective_chat.id, text=message)
+    r.set(update.effective_chat.id, update.message.from_user) #Adds any user that sends a message to the database
     return INITIAL
 
 async def gems(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
