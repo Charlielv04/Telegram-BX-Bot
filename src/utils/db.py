@@ -55,4 +55,10 @@ def subs_of_committee(committee_name):
                 keys_of_subs.append(key)
     return keys_of_subs
 
-subs_of_committee(".9 Bar")
+def get_pass_committee(committee_name):
+    """
+    Takes a committee name and returns the password associated to that committee
+    """
+    key = 'pass:' + str(committee_name)
+    password = r.get(key)
+    return password
