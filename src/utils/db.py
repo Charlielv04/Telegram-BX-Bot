@@ -1,4 +1,4 @@
-import config
+from utils import config
 
 r = config.r
 
@@ -38,3 +38,21 @@ def user_to_key(user):
     Formats the user id as a string to fit the name organization of the redis db
     """
     return 'user:' + str(user.id)
+
+def subs_of_committee(committee_name):
+    """
+    Takes a committee name and returns a list of the keys of the db of all users subscribed to it
+    """
+    keys_of_subs = []
+    cursor = '0'
+
+    while cursor != 0:
+        cursor, keys = r.scan(cursor=cursor, match="user*")
+        for key in keys:
+            subs = r.hget(key, "subs")
+            sub_list = sub_db_list(subs)
+            if committee_name in sub_list:
+                keys_of_subs.append(key)
+    return keys_of_subs
+
+subs_of_committee(".9 Bar")
