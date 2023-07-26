@@ -2,13 +2,10 @@ import logging
 import re
 import time
 import json
-import typing
 import math
-import redis
 import Lore
 import Committees
-import config
-r = config.r
+from utils import db
 
 with open('../credentials.json') as f:
     bot_token = json.load(f)["bot_token"]
@@ -54,29 +51,13 @@ committees_list = "\n -  ".join(["",".9 bar🍻🍻 (/bar)", "PhysiX⚛️⚛️
 def message_wait(message):
     return math.log(len(message), 10)
 
-def user_to_key(user):
-    return 'user:' + str(user.id)
-
-def add_to_db(update: Update):
-    if r.exists(update.effective_user.id):
-        return
-    user = update.effective_user
-    key = user_to_key(user)
-    info = {
-        'name': user.first_name,
-        'fullname': user.full_name,
-        'id': user.id,
-        'subs': '' #comma separated list as redis has to store everything as strings
-    }
-    r.hset(key, mapping=info)
-
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Start the conversation and ask user for input."""
     for message in texts["start"]:
         await context.bot.send_chat_action(chat_id=update.effective_chat.id, action='typing')
         time.sleep(message_wait(message))
         await context.bot.send_message(chat_id=update.effective_chat.id, text=message)
-    add_to_db(update)
+    db.add_to_db(update.effective_user)
     return INITIAL
 
 async def gems(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:

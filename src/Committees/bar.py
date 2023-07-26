@@ -1,7 +1,6 @@
 import re
 import time
-import redis
-import config
+from utils import config, db
 
 from telegram import ReplyKeyboardMarkup, Update
 from telegram.ext import (
@@ -14,18 +13,6 @@ from telegram.ext import (
 
 r = config.r
 
-def sub_db_list(subs):
-    if subs == '': return []
-    sub_list = subs.split(', ')
-    return sub_list
-
-def sub_list_db(sub_list):
-    if sub_list == []: return ''
-    subs = ', '.join(sub_list)
-    return subs
-
-def user_to_key(user):
-    return 'user:' + str(user.id)
 class Bar:
     def __init__(self):
         self.REPLY_KEYBOARD = [
@@ -101,8 +88,8 @@ class Bar:
     
     async def manage_sub(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         """Checks if the user is subscribed and allows it to toogle it"""
-        user_info = r.hgetall(user_to_key(update.effective_user))
-        sub_list = sub_db_list(user_info["subs"])
+        user_info = r.hgetall(db.user_to_key(update.effective_user))
+        sub_list = db.sub_db_list(user_info["subs"])
         if self.committee_name in sub_list:
             await context.bot.send_message(chat_id=update.effective_chat.id,
                                            text='It seems like you are already subscribed to this committee')
@@ -124,23 +111,23 @@ class Bar:
             return self.SUB
 
     async def sub(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-        user_info = r.hgetall(user_to_key(update.effective_user))
-        sub_list = sub_db_list(user_info['subs'])
+        user_info = r.hgetall(db.user_to_key(update.effective_user))
+        sub_list = db.sub_db_list(user_info['subs'])
         sub_list.append(self.committee_name)
-        subs = sub_list_db(sub_list)
+        subs = db.sub_list_db(sub_list)
         user_info['subs'] = subs
-        r.hset(user_to_key(update.effective_user), mapping=user_info)
+        r.hset(db.user_to_key(update.effective_user), mapping=user_info)
         await context.bot.send_message(chat_id=update.effective_chat.id,
                                        text=f'You have been subscribed to {self.committee_name}')
         return self.HOME
 
     async def unsub(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-        user_info = r.hgetall(user_to_key(update.effective_user))
-        sub_list = sub_db_list(user_info['subs'])
+        user_info = r.hgetall(db.user_to_key(update.effective_user))
+        sub_list = db.sub_db_list(user_info['subs'])
         sub_list.remove(self.committee_name)
-        subs = sub_list_db(sub_list)
+        subs = db.sub_list_db(sub_list)
         user_info['subs'] = subs
-        r.hset(user_to_key(update.effective_user), mapping=user_info)
+        r.hset(db.user_to_key(update.effective_user), mapping=user_info)
         await context.bot.send_message(chat_id=update.effective_chat.id,
                                        text=f'You have been unsubscribed to {self.committee_name}')
         return self.HOME

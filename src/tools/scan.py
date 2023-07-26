@@ -1,10 +1,8 @@
-import logging
-import threading
 import time
 import json
 import importlib
 import os
-from src.config import *
+from utils.config import *
 import src.Committees as Committees
 
 
