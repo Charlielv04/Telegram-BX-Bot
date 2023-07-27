@@ -6,7 +6,10 @@ import telegram.error
 from utils import db, config, passwords
 
 with open('../credentials.json') as f:
-    bot_token = json.load(f)["SailoreCommitteesBot"]
+    tokens = json.load(f)
+    committees_token = tokens["SailoreCommitteesBot"]
+    parrot_token = tokens["SailoreParrotBot"]
+    sailore_token = tokens["SailoreBXBot"]
 
 with open('../data/Committees/committees.json') as f:
     committees = json.load(f)
@@ -23,7 +26,7 @@ if __version_info__ < (20, 0, 0, "alpha", 1):
         f"{TG_VER} version of this example, "
         f"visit https://docs.python-telegram-bot.org/en/v{TG_VER}/examples.html"
     )
-from telegram import Update
+from telegram import Update, Bot
 from telegram.ext import (
     Application,
     CommandHandler,
@@ -41,7 +44,7 @@ logging.getLogger("httpx").setLevel(logging.WARNING)
 
 logger = logging.getLogger(__name__)
 
-class Parrot:
+class Committees_hub:
     def __init__(self):
         self.list = list(committees.keys())
         self.list.insert(0, '')
@@ -49,7 +52,7 @@ class Parrot:
         [self.HOME, self.ADMIN, self.COMMITTEE, self.MESSAGE] = range(4)
         self.active_committee = ''
 
-        self.parrot_handler = ConversationHandler(
+        self.committees_handler = ConversationHandler(
             entry_points=[CommandHandler("admin", self.admin)],
             states={
                 self.HOME: [CommandHandler("admin", self.admin)],
@@ -93,22 +96,26 @@ class Parrot:
         message = update.message.text
         keys = db.subs_of_committee(self.active_committee)
         users_info = db.get_users_info(keys)
+        parrot_bot = Bot(parrot_token)
+        sailore_bot = Bot(sailore_token)
         for user in users_info:
             try:
-                await context.bot.send_message(chat_id=user['id'],
+                await parrot_bot.send_message(chat_id=user['id'],
                                                text=f'Hello {user["name"]}, this is a communication from {self.active_committee}:')
-                await context.bot.send_message(chat_id=user['id'], text=message)
+                await parrot_bot.send_message(chat_id=user['id'], text=message)
             except telegram.error.BadRequest:
                 print('Error handled')
-                #TO-DO: save the chat ids that go here and send them a message through the other bot
+                await sailore_bot.send_message(chat_id=user['id'],
+                    text=f"""Hello {user['name']}, a communication from one of your subscriptions was just sent to you but you didn't receive it as you haven't signed in into t.me/SailoreParrotBot""")
+
         return self.HOME
 
 def main() -> None:
     """Run the bot."""
     # Create the Application and pass it your bot's token.
-    application = Application.builder().token(bot_token).build()
-    parrot = Parrot()
-    application.add_handler(parrot.parrot_handler)
+    application = Application.builder().token(committees_token).build()
+    committees_hub = Committees_hub()
+    application.add_handler(committees_hub.committees_handler)
 
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 
