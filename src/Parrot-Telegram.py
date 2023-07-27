@@ -53,16 +53,22 @@ class Committees_hub:
         self.active_committee = ''
 
         self.committees_handler = ConversationHandler(
-            entry_points=[CommandHandler("admin", self.admin)],
+            entry_points=[MessageHandler(filters.TEXT, self.start)],
             states={
                 self.HOME: [CommandHandler("admin", self.admin)],
                 self.ADMIN: [MessageHandler(filters.TEXT, self.committee)],
                 self.COMMITTEE: [MessageHandler(filters.TEXT, self.password)],
                 self.MESSAGE: [MessageHandler(filters.TEXT, self.parrot)]
             },
-            fallbacks=[CommandHandler("admin", self.admin)]
+            fallbacks=[CommandHandler("admin", self.admin),
+                       MessageHandler(filters.TEXT, self.start)]
         )
-
+    async def start(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        await context.bot.send_message(chat_id=update.effective_user.id,
+                                       text="This bot is for committees to manage their bot sections")
+        await context.bot.send_message(chat_id=update.effective_user.id,
+                                       text="To log into your committee use /admin")
+        return self.HOME
     async def admin(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         await context.bot.send_message(chat_id=update.effective_chat.id,
                                        text="To which committee do you want to log in?" + self.committees_list)
@@ -73,7 +79,7 @@ class Committees_hub:
         if committee in committees.keys():
             self.active_committee = committees[committee]
             await context.bot.send_message(chat_id=update.effective_chat.id,
-                                        text="What is the password?")
+                                           text="What is the password?")
             return self.COMMITTEE
         else:
             await context.bot.send_message(chat_id=update.effective_chat.id,
@@ -85,11 +91,15 @@ class Committees_hub:
 
         if passwords.verify_password(db.get_pass_committee(self.active_committee),password):
             await context.bot.send_message(chat_id=update.effective_chat.id,
-                                           text="Logged in succesfully")
+                                           text="Logged in successfully")
             await context.bot.send_message(chat_id=update.effective_chat.id,
                                            text="Which message do you want to send to your subscriptors?")
+            db.record_logging(update.effective_user, self.active_committee)
             return self.MESSAGE
         else:
+            await context.bot.send_message(chat_id=update.effective_chat.id,
+                                           text="Incorrect password")
+            db.user_wrong_password(update.effective_user)
             return self.HOME
 
     async def parrot(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -98,16 +108,21 @@ class Committees_hub:
         users_info = db.get_users_info(keys)
         parrot_bot = Bot(parrot_token)
         sailore_bot = Bot(sailore_token)
+        counter = 0
         for user in users_info:
             try:
                 await parrot_bot.send_message(chat_id=user['id'],
                                                text=f'Hello {user["name"]}, this is a communication from {self.active_committee}:')
                 await parrot_bot.send_message(chat_id=user['id'], text=message)
             except telegram.error.BadRequest:
-                print('Error handled')
+                counter += 1
                 await sailore_bot.send_message(chat_id=user['id'],
                     text=f"""Hello {user['name']}, a communication from one of your subscriptions was just sent to you but you didn't receive it as you haven't signed in into t.me/SailoreParrotBot""")
-
+        await context.bot.send_message(chat_id=update.effective_user.id,
+                                       text="Successfully echoed your message")
+        if counter > 0:
+            await context.bot.send_message(chat_id=update.effective_user.id,
+                                           text=f"We also notified {counter} of your users which didn't sign into @SailoreParrotBot")
         return self.HOME
 
 def main() -> None:

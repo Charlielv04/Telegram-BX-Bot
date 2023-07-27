@@ -72,3 +72,27 @@ def get_users_info(keys):
         info = r.hgetall(key)
         users_info.append(info)
     return users_info
+
+def user_wrong_password(user):
+    """
+    Registers the users that put passwords wrong when logging to committees to give a wake-up call to any people playing
+    """
+    key = user_to_key(user)
+    info = r.hgetall(key)
+    try:
+        info["errors"] = int(info["errors"]) + 1
+    except KeyError:
+        info["errors"] = 1
+    r.hset(key, mapping=info)
+
+def record_logging(user, committee_name):
+    """
+    Registers the last fifty loggings to a committee
+    """
+    key = 'log:' + committee_name
+    length = r.llen(key)
+    print(length)
+    if r.llen(key) >= 50:
+        r.rpop(key)
+    r.lpush(key, user.full_name)
+
