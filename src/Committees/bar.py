@@ -94,7 +94,7 @@ class Bar:
             await context.bot.send_message(chat_id=update.effective_chat.id,
                                            text='It seems like you are already subscribed to this committee')
             await context.bot.send_message(chat_id=update.effective_chat.id,
-                                           text='This means that you will receive their communications through our associated bot NAME TO BE INSERTED')
+                                           text='This means that you will receive their communications through our associated bot @SailoreParrotBot')
             await context.bot.send_message(chat_id=update.effective_chat.id,
                                            text='Do you wish to unsubscribe?',
                                            reply_markup=self.MARKUP)
@@ -104,7 +104,7 @@ class Bar:
             await context.bot.send_message(chat_id=update.effective_chat.id,
                                            text='It seems like you are not subscribed to this committee')
             await context.bot.send_message(chat_id=update.effective_chat.id,
-                                           text='Doing so will mean that you will receive their communications through our associated bot NAME TO BE INSERTED')
+                                           text='Doing so will mean that you will receive their communications through our associated bot @SailoreParrotBot')
             await context.bot.send_message(chat_id=update.effective_chat.id,
                                            text='Do you wish to subscribe?',
                                            reply_markup=self.MARKUP)
@@ -119,6 +119,8 @@ class Bar:
         r.hset(db.user_to_key(update.effective_user), mapping=user_info)
         await context.bot.send_message(chat_id=update.effective_chat.id,
                                        text=f'You have been subscribed to {self.committee_name}')
+        await context.bot.send_message(chat_id=update.effective_chat.id,
+                                       text='In order to receive communications interact at least once with t.me/SailoreParrotBot')
         return self.HOME
 
     async def unsub(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:

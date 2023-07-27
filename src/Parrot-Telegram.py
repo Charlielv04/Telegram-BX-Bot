@@ -1,14 +1,12 @@
 import logging
-import re
-import time
 import json
-import math
-import Lore
-import Committees
+
+import telegram.error
+
 from utils import db, config, passwords
 
 with open('../credentials.json') as f:
-    bot_token = json.load(f)["SailoreParrotBot"]
+    bot_token = json.load(f)["SailoreCommitteesBot"]
 
 with open('../data/Committees/committees.json') as f:
     committees = json.load(f)
@@ -87,16 +85,22 @@ class Parrot:
                                            text="Logged in succesfully")
             await context.bot.send_message(chat_id=update.effective_chat.id,
                                            text="Which message do you want to send to your subscriptors?")
-        return self.MESSAGE
+            return self.MESSAGE
+        else:
+            return self.HOME
 
     async def parrot(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         message = update.message.text
         keys = db.subs_of_committee(self.active_committee)
-        ids = []
-        for key in keys:
-            ids.append(key.strip("user:"))
-        for id in ids:
-            await context.bot.send_message(chat_id=id, text=message)
+        users_info = db.get_users_info(keys)
+        for user in users_info:
+            try:
+                await context.bot.send_message(chat_id=user['id'],
+                                               text=f'Hello {user["name"]}, this is a communication from {self.active_committee}:')
+                await context.bot.send_message(chat_id=user['id'], text=message)
+            except telegram.error.BadRequest:
+                print('Error handled')
+                #TO-DO: save the chat ids that go here and send them a message through the other bot
         return self.HOME
 
 def main() -> None:

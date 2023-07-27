@@ -10,3 +10,8 @@ Subscriptions:
 - Allow committees to check their number of members through another or the initial bot
 - Allow committees to send communications through another bot to their subscriptors
 - Having multiple users simultaneously update the json files will make it so that some of the registries aren't added
+
+Committees management:
+- Handling subscribers that didn't interact with the parrot bot
+- Communication between bots so that one can make another one send a message
+- Separating Committees Bot from Parrot Bot

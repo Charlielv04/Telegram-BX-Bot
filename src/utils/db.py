@@ -62,3 +62,13 @@ def get_pass_committee(committee_name):
     key = 'pass:' + str(committee_name)
     password = r.get(key)
     return password
+
+def get_users_info(keys):
+    """
+    Takes a list of keys and returns the dictionaries associated to them
+    """
+    users_info = []
+    for key in keys:
+        info = r.hgetall(key)
+        users_info.append(info)
+    return users_info
