@@ -2,21 +2,29 @@ from utils import config
 
 r = config.r
 
-def sub_db_list(subs):
+def db_to_list(db_string):
     """
     Takes a comma separated (string), as stored in the redis db, and returns a normal python list
     """
-    if subs == '': return []
-    sub_list = subs.split(', ')
-    return sub_list
+    if db_string == '': return []
+    db_list = db_string.split(', ')
+    return db_list
 
-def sub_list_db(sub_list):
+def list_to_db(db_list):
     """
-    Takes a python list of subscriptions and returns it as a comma separated list (string) to be stored in the redis db
+    Takes a python list and returns it as a comma separated list (string) to be stored in the redis db
     """
-    if sub_list == []: return ''
-    subs = ', '.join(sub_list)
-    return subs
+    if db_list == []: return ''
+    db_string = ', '.join(db_list)
+    return db_string
+
+def list_to_telegram(db_list):
+    """
+    Takes a python list and returns a list to be inserted into a telegram message and portrayed as such
+    """
+    if db_list == []: return ''
+    string_list = ' - ' + '\n - '.join(db_list)
+    return string_list
 
 def add_to_db(user):
     """
@@ -29,7 +37,8 @@ def add_to_db(user):
         'name': user.first_name,
         'fullname': user.full_name,
         'id': user.id,
-        'subs': '' #comma separated list as redis has to store everything as strings
+        'subs': '', #comma separated list as redis has to store everything as strings
+        'rights': ''
     }
     r.hset(key, mapping=info)
 
@@ -50,7 +59,7 @@ def subs_of_committee(committee_name):
         cursor, keys = r.scan(cursor=cursor, match="user*")
         for key in keys:
             subs = r.hget(key, "subs")
-            sub_list = sub_db_list(subs)
+            sub_list = db_to_list(subs)
             if committee_name in sub_list:
                 keys_of_subs.append(key)
     return keys_of_subs
@@ -62,6 +71,13 @@ def get_pass_committee(committee_name):
     key = 'pass:' + str(committee_name)
     password = r.get(key)
     return password
+
+def get_user_info(user):
+    """
+    Takes a user and returns its info
+    """
+    info = r.hgetall(user_to_key(user))
+    return info
 
 def get_users_info(keys):
     """
@@ -96,3 +112,63 @@ def record_logging(user, committee_name):
         r.rpop(key)
     r.lpush(key, user.full_name)
 
+def get_committee_access(committee_name):
+    """
+    Takes a committee name and returns its settings for the hub
+    """
+    key = 'access:' + committee_name
+    access = r.hgetall(key)
+    return access
+
+def add_one_time_pass(password, committee_name):
+    """
+    Takes a generated password and committee name and uploads it on the database for future use
+    """
+    key = 'pass:' + committee_name
+    r.set(key, password)
+
+def use_one_time_pass(password, committee_name):
+    """
+    Takes a password and a committee name and uses the password if valid, then deletes the database instance
+    """
+    key = 'pass:' + committee_name
+    if r.exists(key) and password == r.get(key):
+        r.delete(key)
+        return True
+    return False
+
+def add_access_rights(user, committee_name, committee_command):
+    """
+    Adds access rights to a user
+    """
+    access_string = r.hget(user_to_key(user), key="rights")
+    access_list = db_to_list(access_string)
+    access_list.append(committee_command)
+    updated_access = list_to_db(access_list)
+    committee_key = 'access:' + committee_name
+    p = r.pipeline()
+    p.hset(user_to_key(user), key="rights", value=updated_access)
+    p.hset(committee_key, key=user.id, value="admin")
+    p.execute()
+
+def eliminate_access_rights(id, committee_name, committee_command):
+    """
+    Eliminates access rights to a given id
+    """
+    user_key = 'user:' + id
+    access_string = r.hget(user_key, key="rights")
+    access_list = db_to_list(access_string)
+    access_list.remove(committee_command)
+    updated_access = list_to_db(access_list)
+    committee_key = 'access:' + committee_name
+    p = r.pipeline()
+    p.hset(user_key, key="rights", value=updated_access)
+    p.hdel(committee_key, id)
+    return p.execute()
+
+def change_committee_access(committee_name, new_rights):
+    """
+    Updates the committee access to a new set of rights
+    """
+    commmittee_key = 'access:' + committee_name
+    r.hset(commmittee_key, mapping=new_rights)

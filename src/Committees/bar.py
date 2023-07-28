@@ -89,7 +89,7 @@ class Bar:
     async def manage_sub(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         """Checks if the user is subscribed and allows it to toogle it"""
         user_info = r.hgetall(db.user_to_key(update.effective_user))
-        sub_list = db.sub_db_list(user_info["subs"])
+        sub_list = db.db_to_list(user_info["subs"])
         if self.committee_name in sub_list:
             await context.bot.send_message(chat_id=update.effective_chat.id,
                                            text='It seems like you are already subscribed to this committee')
@@ -112,9 +112,9 @@ class Bar:
 
     async def sub(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         user_info = r.hgetall(db.user_to_key(update.effective_user))
-        sub_list = db.sub_db_list(user_info['subs'])
+        sub_list = db.db_to_list(user_info['subs'])
         sub_list.append(self.committee_name)
-        subs = db.sub_list_db(sub_list)
+        subs = db.list_to_db(sub_list)
         user_info['subs'] = subs
         r.hset(db.user_to_key(update.effective_user), mapping=user_info)
         await context.bot.send_message(chat_id=update.effective_chat.id,
@@ -125,9 +125,9 @@ class Bar:
 
     async def unsub(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         user_info = r.hgetall(db.user_to_key(update.effective_user))
-        sub_list = db.sub_db_list(user_info['subs'])
+        sub_list = db.db_to_list(user_info['subs'])
         sub_list.remove(self.committee_name)
-        subs = db.sub_list_db(sub_list)
+        subs = db.list_to_db(sub_list)
         user_info['subs'] = subs
         r.hset(db.user_to_key(update.effective_user), mapping=user_info)
         await context.bot.send_message(chat_id=update.effective_chat.id,
