@@ -5,10 +5,10 @@ import json
 import math
 import Lore
 import Committees
-from utils import db
+from utils import db, config
 
 with open('../credentials.json') as f:
-    bot_token = json.load(f)["bot_token"]
+    bot_token = json.load(f)["SailoreBXBot"]
 
 with open('../data/Initial.json', encoding='utf-8') as f:
     texts = json.load(f)
@@ -153,7 +153,7 @@ def main() -> None:
             ],
             COMMITTEES:  [
                 #State of the bot in which the committees children handlers can be accessed
-                Committees.bar.Bar.bar_handler,
+                bar.bar_handler,
                 physix.physix_handler
             ],
         },
