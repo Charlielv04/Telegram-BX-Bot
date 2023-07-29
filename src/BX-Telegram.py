@@ -6,6 +6,8 @@ import math
 import Lore
 import Committees
 from utils import db, config
+import utils
+import asyncio
 
 with open('../credentials.json') as f:
     bot_token = json.load(f)["SailoreBXBot"]
@@ -115,10 +117,12 @@ async def committees(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     return COMMITTEES
 
 
-def main() -> None:
+async def main() -> None:
     """Run the bot."""
+    asyncio.create_task(utils.scan(3600))
     # Create the Application and pass it your bot's token.
     application = Application.builder().token(bot_token).build()
+    
     bar = Committees.Bar()
     physix = Committees.Physix()
     members = Lore.Members()
