@@ -58,7 +58,7 @@ class Access_handler:
         self.role_to_apply = ''
         self.admins_ids = {}
         self.HOME, self.LOGIN, self.VERIFICATION, self.HUB, self.MESSAGE, self.ACCESS, self.RIGHTS, self.APPLY_ROLE, self.CONFIRMATION = range(9)
-
+        self.user_rights = None
         self.access_handler=ConversationHandler(
             entry_points=[CommandHandler("access", self.access)],
             states={
@@ -83,6 +83,10 @@ class Access_handler:
         )
 
     async def access(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        if not self.user_rights == 'Prez':
+            await context.bot.send_message(chat_id=update.effective_chat.id,
+                                           text="You don't have access rights for this functionality")
+            return self.HUB
         access_granted = db.get_committee_access(self.active_committee)
         roles = ["Prez: All functionalities + access management", "Admin: All functionalities", "Comms: Message functionality", "Events: Events functionality"]
         keys = ['user:' + user_id for user_id in access_granted.keys()]
@@ -148,6 +152,7 @@ class Access_handler:
             return self.HUB
         if self.role_to_apply == 'Prez':
             self.admins_rights[update.effective_user.first_name] = 'Admin'
+            self.user_rights = 'Admin'
         if self.role_to_apply == 'None':
             del self.admins_rights[self.admin_to_change]
             committee_command = [key for key in committees.keys() if committees[key] == self.active_committee][0]
@@ -165,6 +170,7 @@ class Committee_hub:
         self.active_committee = ''
         self.HOME, self.LOGIN, self.VERIFICATION, self.HUB, self.MESSAGE, self.ACCESS, self.RIGHTS, self.APPLY_ROLE, self.CONFIRMATION = range(9)
         self.access_handler = Access_handler()
+        self.user_rights = None
         hub_handlers = [CommandHandler("subs", self.give_subs),
                         CommandHandler("message", self.message),
                         CommandHandler("event", self.event),
@@ -183,10 +189,22 @@ class Committee_hub:
             }
         )
     async def hub(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        self.user_rights = db.get_committee_access(self.active_committee)[str(update.effective_user.id)]
+        self.access_handler.user_rights = self.user_rights
         await context.bot.send_message(chat_id=update.effective_user.id,
-                                       text=f"You are logged into {self.active_committee}")
-        await context.bot.send_message(chat_id=update.effective_chat.id,
-                                       text="From here you can check your /subs, send them a /message, upload an /event to the google calendar or manage the /access to this committee hub")
+                                       text=f"You are logged into {self.active_committee} as {self.user_rights}")
+        if self.user_rights == 'Prez':
+            await context.bot.send_message(chat_id=update.effective_chat.id,
+                                           text="From here you can check your /subs, send them a /message, upload an /event to the google calendar or manage the /access to this committee hub")
+        elif self.user_rights == 'Admin':
+            await context.bot.send_message(chat_id=update.effective_chat.id,
+                                           text="From here you can check your /subs, send them a /message or upload an /event to the google calendar")
+        elif self.user_rights == 'Comms':
+            await context.bot.send_message(chat_id=update.effective_chat.id,
+                                           text="From here you can check your /subs or send them a /message")
+        elif self.user_rights == 'Events':
+            await context.bot.send_message(chat_id=update.effective_chat.id,
+                                           text="From here you can check your /subs or upload an /event to the google calendar")
         await context.bot.send_message(chat_id=update.effective_chat.id,
                                        text="If you want to access other committee, then /logout")
         return self.HUB
@@ -199,10 +217,15 @@ class Committee_hub:
         name_list = '\n - '.join(names)
         await context.bot.send_message(chat_id=update.effective_user.id,
                                        text=f"Your committee has a total of {len(names) - 1} subs")
-        await context.bot.send_message(chat_id=update.effective_user.id,
+        if len(names) > 1:
+            await context.bot.send_message(chat_id=update.effective_user.id,
                                        text="This is the full list:" + name_list)
         return self.HUB
     async def message(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        if self.user_rights == 'Events':
+            await context.bot.send_message(chat_id=update.effective_chat.id,
+                                           text="You don't have access rights for this functionality")
+            return self.HUB
         await context.bot.send_message(chat_id=update.effective_user.id,
                                        text="What message do you wish to send to your subscriptors?")
         return self.MESSAGE
@@ -229,6 +252,10 @@ class Committee_hub:
                                            text=f"We also notified {counter} of your users which didn't sign into @SailoreParrotBot")
         return self.HUB
     async def event(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        if self.user_rights == 'Comms':
+            await context.bot.send_message(chat_id=update.effective_chat.id,
+                                           text="You don't have access rights for this functionality")
+            return self.HUB
         await context.bot.send_message(chat_id=update.effective_chat.id,
                                        text="Functionality to be implemented")
     async def logout(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -285,11 +312,10 @@ class Committees_Login:
         if committee in self.access_list:
             self.active_committee = committees[committee]
             await context.bot.send_message(chat_id=update.effective_user.id,
-                                           text=f"You have successfully logged into {self.active_committee}")
-            await context.bot.send_message(chat_id=update.effective_chat.id,
-                                           text="From here you can check your /subs, send them a /message, upload an /event to the google calendar or manage the /access to this committee hub")
+                                           text=f"You have successfully logged in")
             self.committee_hub.active_committee = self.active_committee
             self.committee_hub.access_handler.active_committee = self.active_committee
+            await self.committee_hub.hub(update, context)
             return self.HUB
         else:
             await context.bot.send_message(chat_id=update.effective_user.id,
