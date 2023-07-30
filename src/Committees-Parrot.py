@@ -268,6 +268,7 @@ class Committees_Login:
         self.active_committee = ''
         self.HOME, self.LOGIN, self.VERIFICATION, self.HUB, self.MESSAGE, self.ACCESS, self.RIGHTS, self.APPLY_ROLE, self.CONFIRMATION = range(9)
         self.committee_hub = Committee_hub()
+        self.access_list = []
         self.login_handler=ConversationHandler(
             entry_points=[MessageHandler(filters.TEXT, self.start)],
             states={
