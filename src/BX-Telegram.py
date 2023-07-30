@@ -68,7 +68,6 @@ async def gems(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         await context.bot.send_chat_action(chat_id=update.effective_chat.id, action='typing')
         time.sleep(message_wait(message))
         await context.bot.send_message(chat_id=update.effective_chat.id, text=message)
-    await context.bot.send_message(chat_id=5454590173, text="Hello Gianluca I'm seeing you")
     return INITIAL
 
 async def lore(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -120,10 +119,8 @@ async def committees(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
 def main() -> None:
     """Run the bot."""
-    print('hey')
     changes_checker_thread = threading.Thread(target=utils.scan)
     changes_checker_thread.start()
-    print('hey')
     
     # Create the Application and pass it your bot's token.
     application = Application.builder().token(bot_token).build()

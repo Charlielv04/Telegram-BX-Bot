@@ -2,13 +2,12 @@ Authentication for committee members
 
 There is going to be another bot for the communications, which will take the chat_ids and some other info to send personalized info
 
-Allow committee heads to get the list of their subscribers throuh the bot rather than through google sheets
-Google sheets may be useful for gem handling either way
+Allow committee heads to get the list of their subscribers through the bot rather than through Google sheets may be useful for gem handling either way
 
 Subscriptions:
-- Store the subscriptors in a json file, use as key the chat id and have as value another dictionary with more information
+- Store the subscribers in a json file, use as key the chat id and have as value another dictionary with more information
 - Allow committees to check their number of members through another or the initial bot
-- Allow committees to send communications through another bot to their subscriptors
+- Allow committees to send communications through another bot to their subscribers
 - Having multiple users simultaneously update the json files will make it so that some of the registries aren't added
 
 Committees management:
