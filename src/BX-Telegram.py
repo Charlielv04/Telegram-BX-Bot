@@ -7,7 +7,7 @@ import Lore
 import Committees
 from utils import db, config
 import utils
-import asyncio
+import threading
 
 with open('../credentials.json') as f:
     bot_token = json.load(f)["SailoreBXBot"]
@@ -117,9 +117,13 @@ async def committees(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     return COMMITTEES
 
 
-async def main() -> None:
+def main() -> None:
     """Run the bot."""
-    asyncio.create_task(utils.scan(3600))
+    print('hey')
+    changes_checker_thread = threading.Thread(target=utils.scan)
+    changes_checker_thread.start()
+    print('hey')
+    
     # Create the Application and pass it your bot's token.
     application = Application.builder().token(bot_token).build()
     

@@ -6,14 +6,20 @@ from utils.config import *
 import src.Committees as Committees
 
 
-def scan(sleep_time):
+def scan():
+    path = os.path.join(ROOT, 'data/states.json')
     while True:
-        time.sleep(sleep_time)
-        with open(os.path.join(ROOT, 'data/states.json', 'r+')) as f:
+        print('before file check')
+        with open(path, 'r') as f:
             states = json.load(f)
-            if states['scan']['new']:
-                importlib.reload(Committees)
-                states['scan']['new'] = 0
-                json.dump(states, f)
+        if states['scan']['new']:
+            importlib.reload(Committees)
+            states['scan']['new'] = 0
+            with open(path, 'w') as f:
+                json.dump(states, f, indent=4)
+        print('after file check')
+        time.sleep(3600)
+        print('after sleep')
+
                     
             
